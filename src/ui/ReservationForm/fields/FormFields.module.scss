@@ -1,0 +1,58 @@
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 15px;
+    position: relative;
+    padding-bottom: 32px;
+}
+
+.label {
+    font-weight: 500;
+}
+
+.input,
+.select {
+    height: 50px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    border: 1px solid #d1d5db;
+    padding: 10px 11px;
+    font: inherit;
+    background-color: #f9fafb;
+    color: inherit;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    &:focus,
+    &:focus {
+        border-color: #facc15;
+        box-shadow: 0 0 0 1px #facc15;
+    }
+}
+
+.inputError {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.7);
+}
+
+.error {
+    position: absolute;
+    left: 0;
+    top: 85px;
+    margin: 0;
+    font-size: 13px;
+    color: #b91c1c;
+    span {
+        display: block;
+    }
+}
+
+.dateTimeRow {
+    display: flex;
+    gap: 8px;
+    .input {
+        flex: 1;
+    }
+}
