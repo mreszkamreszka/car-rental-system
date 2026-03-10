@@ -6,12 +6,53 @@ import { ReservationSystemMessage } from './ReservationSystemMessage/Reservation
 import { CarTypeField } from './ReservationForm/fields/CarTypeField';
 import { StartDateTimeField } from './ReservationForm/fields/StartDateTimeField';
 import { DaysField } from './ReservationForm/fields/DaysField';
+
 type Errors = {
     carType?: string;
     startDate?: string;
     startTime?: string;
     days?: string;
 };
+
+function validateCarType(value: CarType | ''): string | undefined {
+    if (!value) {
+        return 'Please select a car type.';
+    }
+    return undefined;
+}
+
+function validateStartDate(value: string): string | undefined {
+    if (!value) {
+        return 'Please choose a start date.';
+    }
+    return undefined;
+}
+
+function validateDays(value: string): string | undefined {
+    const num = Number(value);
+    if (!value || Number.isNaN(num) || num < 1) {
+        return 'Number of days must be at least 1.';
+    }
+    if (num > 100) {
+        return 'Number of days cannot exceed 100.';
+    }
+    return undefined;
+}
+
+function validateStartTime(dateValue: string, timeValue: string): string | undefined {
+    if (!timeValue) {
+        return 'Please choose a start time.';
+    }
+    if (!dateValue) {
+        return undefined;
+    }
+    const selected = new Date(`${dateValue}T${timeValue}`);
+    const nowLocal = new Date();
+    if (selected.getTime() < nowLocal.getTime()) {
+        return 'Start date and time cannot be in the past.';
+    }
+    return undefined;
+}
 
 export function ReservationForm() {
     const [carType, setCarType] = useState<CarType | ''>('');
@@ -30,51 +71,6 @@ export function ReservationForm() {
             : undefined;
 
     const carTypeOptions = Object.entries(CarType) as Array<[string, CarType]>;
-
-    const validateCarType = (value: CarType | ''): string | undefined => {
-        if (!value) {
-            return 'Please select a car type.';
-        }
-        return undefined;
-    };
-
-    const validateStartDate = (value: string): string | undefined => {
-        if (!value) {
-            return 'Please choose a start date.';
-        }
-        return undefined;
-    };
-
-    const validateDays = (value: string): string | undefined => {
-        const num = Number(value);
-        if (!value || Number.isNaN(num) || num < 1) {
-            return 'Number of days must be at least 1.';
-        }
-        if (num > 100) {
-            return 'Number of days cannot exceed 100.';
-        }
-        return undefined;
-    };
-
-    const validateStartTime = (dateValue: string, timeValue: string): string | undefined => {
-        if (!timeValue) {
-            return 'Please choose a start time.';
-        }
-
-        // If date is missing, date field will show its own error; don't duplicate here.
-        if (!dateValue) {
-            return undefined;
-        }
-
-        const selected = new Date(`${dateValue}T${timeValue}`);
-        const nowLocal = new Date();
-
-        if (selected.getTime() < nowLocal.getTime()) {
-            return 'Start date and time cannot be in the past.';
-        }
-
-        return undefined;
-    };
 
     const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
