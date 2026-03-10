@@ -31,39 +31,63 @@ export function ReservationForm() {
 
     const carTypeOptions = Object.entries(CarType) as Array<[string, CarType]>;
 
+    const validateCarType = (value: CarType | ''): string | undefined => {
+        if (!value) {
+            return 'Please select a car type.';
+        }
+        return undefined;
+    };
+
+    const validateStartDate = (value: string): string | undefined => {
+        if (!value) {
+            return 'Please choose a start date.';
+        }
+        return undefined;
+    };
+
+    const validateDays = (value: string): string | undefined => {
+        const num = Number(value);
+        if (!value || Number.isNaN(num) || num < 1) {
+            return 'Number of days must be at least 1.';
+        }
+        if (num > 100) {
+            return 'Number of days cannot exceed 100.';
+        }
+        return undefined;
+    };
+
+    const validateStartTime = (dateValue: string, timeValue: string): string | undefined => {
+        if (!timeValue) {
+            return 'Please choose a start time.';
+        }
+
+        // If date is missing, date field will show its own error; don't duplicate here.
+        if (!dateValue) {
+            return undefined;
+        }
+
+        const selected = new Date(`${dateValue}T${timeValue}`);
+        const nowLocal = new Date();
+
+        if (selected.getTime() < nowLocal.getTime()) {
+            return 'Start date and time cannot be in the past.';
+        }
+
+        return undefined;
+    };
+
     const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
 
         const nextErrors: Errors = {};
-
-        if (!carType) {
-            nextErrors.carType = 'Please select a car type.';
-        }
-
-        if (!startDate) {
-            nextErrors.startDate = 'Please choose a start date.';
-        }
-
-        if (!startTime) {
-            nextErrors.startTime = 'Please choose a start time.';
-        }
-
-        const daysNumber = Number(days);
-        if (!days || Number.isNaN(daysNumber) || daysNumber < 1) {
-            nextErrors.days = 'Number of days must be at least 1.';
-        } else if (daysNumber > 100) {
-            nextErrors.days = 'Number of days cannot exceed 100.';
-        }
-
-        // Validate that selected start date & time is not in the past
-        if (startDate && startTime) {
-            const selected = new Date(`${startDate}T${startTime}`);
-            const now = new Date();
-
-            if (selected.getTime() < now.getTime()) {
-                nextErrors.startTime = 'Start date and time cannot be in the past.';
-            }
-        }
+        const carTypeErr = validateCarType(carType);
+        if (carTypeErr) nextErrors.carType = carTypeErr;
+        const startDateErr = validateStartDate(startDate);
+        if (startDateErr) nextErrors.startDate = startDateErr;
+        const startTimeErr = validateStartTime(startDate, startTime);
+        if (startTimeErr) nextErrors.startTime = startTimeErr;
+        const daysErr = validateDays(days);
+        if (daysErr) nextErrors.days = daysErr;
 
         if (Object.keys(nextErrors).length > 0) {
             setErrors(nextErrors);
@@ -74,6 +98,7 @@ export function ReservationForm() {
 
         setErrors({});
 
+        const daysNumber = Number(days);
         const startDateTime = new Date(`${startDate}T${startTime}`);
 
         const request: ReservationRequest = {
@@ -110,7 +135,13 @@ export function ReservationForm() {
                     value={carType}
                     options={carTypeOptions}
                     error={errors.carType}
-                    onChange={setCarType}
+                    onChange={(next) => {
+                        setCarType(next);
+                        setErrors((prev) => ({
+                            ...prev,
+                            carType: validateCarType(next),
+                        }));
+                    }}
                 />
                 <StartDateTimeField
                     startDate={startDate}
@@ -119,11 +150,34 @@ export function ReservationForm() {
                     minTime={minTime}
                     startDateError={errors.startDate}
                     startTimeError={errors.startTime}
-                    onStartDateChange={setStartDate}
-                    onStartTimeChange={setStartTime}
+                    onStartDateChange={(next) => {
+                        setStartDate(next);
+                        setErrors((prev) => ({
+                            ...prev,
+                            startDate: validateStartDate(next),
+                            startTime: validateStartTime(next, startTime),
+                        }));
+                    }}
+                    onStartTimeChange={(next) => {
+                        setStartTime(next);
+                        setErrors((prev) => ({
+                            ...prev,
+                            startTime: validateStartTime(startDate, next),
+                        }));
+                    }}
                 />
 
-                <DaysField value={days} error={errors.days} onChange={setDays} />
+                <DaysField
+                    value={days}
+                    error={errors.days}
+                    onChange={(next) => {
+                        setDays(next);
+                        setErrors((prev) => ({
+                            ...prev,
+                            days: validateDays(next),
+                        }));
+                    }}
+                />
 
                 <button type="submit" className={styles.submitButton}>
                     Reserve
