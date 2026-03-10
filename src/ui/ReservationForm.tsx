@@ -17,6 +17,7 @@ export function ReservationForm() {
     const [days, setDays] = useState('');
     const [errors, setErrors] = useState<Errors>({});
     const [systemMessage, setSystemMessage] = useState<string | null>(null);
+    const [isSystemError, setIsSystemError] = useState(false);
 
     const today = new Date().toISOString().slice(0, 10);
     const now = new Date();
@@ -64,6 +65,7 @@ export function ReservationForm() {
         if (Object.keys(nextErrors).length > 0) {
             setErrors(nextErrors);
             setSystemMessage(null);
+            setIsSystemError(false);
             return;
         }
 
@@ -81,6 +83,7 @@ export function ReservationForm() {
 
         if (!reservation) {
             setSystemMessage('No cars of this type are available for the selected dates.');
+            setIsSystemError(true);
             return;
         }
 
@@ -92,6 +95,7 @@ export function ReservationForm() {
         setSystemMessage(
             `Reserved ${reservation.car.type} (${reservation.car.id}) from ${reservation.startDate.toDateString()} at ${startTimeStr} for ${reservation.days} day(s).`
         );
+        setIsSystemError(false);
     };
 
     return (
@@ -100,8 +104,8 @@ export function ReservationForm() {
             {systemMessage ? (
                 <p
                     className={classNames({
-                        [styles.systemMessageError]: systemMessage.startsWith('No cars'),
-                        [styles.systemMessage]: !systemMessage.startsWith('No cars'),
+                        [styles.systemMessageError]: isSystemError,
+                        [styles.systemMessage]: !isSystemError,
                     })}
                     aria-live="polite"
                 >
