@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 import { CarType, defaultCarRentalSystem, type ReservationRequest } from '../domain';
 import styles from './ReservationForm.module.scss';
@@ -70,7 +70,49 @@ export function ReservationForm() {
             ? `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
             : undefined;
 
-    const carTypeOptions = Object.entries(CarType) as Array<[string, CarType]>;
+    const carTypeOptions = useMemo(
+        () => Object.entries(CarType) as Array<[string, CarType]>,
+        []
+    );
+
+    const onCarTypeChange = useCallback((next: CarType | '') => {
+        setCarType(next);
+        setErrors((prev) => ({
+            ...prev,
+            carType: validateCarType(next),
+        }));
+    }, []);
+
+    const onStartDateChange = useCallback(
+        (next: string) => {
+            setStartDate(next);
+            setErrors((prev) => ({
+                ...prev,
+                startDate: validateStartDate(next),
+                startTime: validateStartTime(next, startTime),
+            }));
+        },
+        [startTime]
+    );
+
+    const onStartTimeChange = useCallback(
+        (next: string) => {
+            setStartTime(next);
+            setErrors((prev) => ({
+                ...prev,
+                startTime: validateStartTime(startDate, next),
+            }));
+        },
+        [startDate]
+    );
+
+    const onDaysChange = useCallback((next: string) => {
+        setDays(next);
+        setErrors((prev) => ({
+            ...prev,
+            days: validateDays(next),
+        }));
+    }, []);
 
     const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
@@ -131,13 +173,7 @@ export function ReservationForm() {
                     value={carType}
                     options={carTypeOptions}
                     error={errors.carType}
-                    onChange={(next) => {
-                        setCarType(next);
-                        setErrors((prev) => ({
-                            ...prev,
-                            carType: validateCarType(next),
-                        }));
-                    }}
+                    onChange={onCarTypeChange}
                 />
                 <StartDateTimeField
                     startDate={startDate}
@@ -146,34 +182,11 @@ export function ReservationForm() {
                     minTime={minTime}
                     startDateError={errors.startDate}
                     startTimeError={errors.startTime}
-                    onStartDateChange={(next) => {
-                        setStartDate(next);
-                        setErrors((prev) => ({
-                            ...prev,
-                            startDate: validateStartDate(next),
-                            startTime: validateStartTime(next, startTime),
-                        }));
-                    }}
-                    onStartTimeChange={(next) => {
-                        setStartTime(next);
-                        setErrors((prev) => ({
-                            ...prev,
-                            startTime: validateStartTime(startDate, next),
-                        }));
-                    }}
+                    onStartDateChange={onStartDateChange}
+                    onStartTimeChange={onStartTimeChange}
                 />
 
-                <DaysField
-                    value={days}
-                    error={errors.days}
-                    onChange={(next) => {
-                        setDays(next);
-                        setErrors((prev) => ({
-                            ...prev,
-                            days: validateDays(next),
-                        }));
-                    }}
-                />
+                <DaysField value={days} error={errors.days} onChange={onDaysChange} />
 
                 <button type="submit" className={styles.submitButton}>
                     Reserve

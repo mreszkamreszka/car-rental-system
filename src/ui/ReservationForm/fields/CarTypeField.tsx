@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import classNames from 'classnames';
 import type { CarType } from '../../../domain';
 import styles from './FormFields.module.scss';
@@ -9,7 +10,7 @@ type CarTypeFieldProps = {
     onChange: (value: CarType | '') => void;
 };
 
-export function CarTypeField({ value, options, error, onChange }: CarTypeFieldProps) {
+function CarTypeFieldComponent({ value, options, error, onChange }: CarTypeFieldProps) {
     return (
         <label className={styles.field} htmlFor="carType">
             <span className={styles.label}>Car type</span>
@@ -42,3 +43,5 @@ export function CarTypeField({ value, options, error, onChange }: CarTypeFieldPr
         </label>
     );
 }
+
+export const CarTypeField = memo(CarTypeFieldComponent);
